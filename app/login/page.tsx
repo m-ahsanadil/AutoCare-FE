@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { FormikHelpers, useFormik } from 'formik'
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,43 +10,136 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/components/auth-provider"
 import { Car, Wrench } from "lucide-react"
+import { loginSchema } from "@/src/validation/schemas"
+import { useLoginMutation } from "@/src/lib/store/services"
+import { useToast } from "@/hooks/use-toast"
+import { UserRole } from "@/src/enum"
+
+
+interface LoginFormValues {
+  email: string
+  password: string
+}
+
+const initialValues: LoginFormValues = {
+  email: '',
+  password: ''
+}
+
+const demoUsers = {
+  "admin@autocare360.com": {
+    role: UserRole.Admin,
+    name: "John Admin",
+  },
+  "mechanic@autocare360.com": {
+    role: UserRole.Mechanic,
+    name: "Mike Mechanic",
+  },
+  "receptionist@autocare360.com": {
+    role: UserRole.Receptionist,
+    name: "Sarah Reception",
+  },
+};
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [role, setRole] = useState("")
-  const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
-  const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const router = useRouter()
+  const [login] = useLoginMutation()
+  const { toast } = useToast()
+  const { login: authLogin } = useAuth();
+  const [loading, setLoading] = useState(false)
+  const [serverErrorMessage, setServerErrorMessage] = useState('')
+  const [serverSuccessMessage, setServerSuccessMessage] = useState('')
+  const [isNavigating, setIsNavigating] = useState(false)
+
+  useEffect(() => {
+    if (isNavigating) {
+      // Small delay to ensure cookie is properly set before navigation
+      const timer = setTimeout(() => {
+        router.push('/dashboard')
+      }, 2000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [isNavigating, router])
+
+
+  const handleLogin = async (values: LoginFormValues, action: FormikHelpers<LoginFormValues>) => {
     setLoading(true)
 
-    // Demo credentials
-    const demoUsers = {
-      "admin@autocare360.com": { role: "admin", name: "John Admin" },
-      "mechanic@autocare360.com": { role: "mechanic", name: "Mike Mechanic" },
-      "receptionist@autocare360.com": { role: "receptionist", name: "Sarah Reception" },
-    }
+    // ✅ Check for demo login first
+    if (values.email in demoUsers && values.password === "password123") {
+      const user = demoUsers[values.email as keyof typeof demoUsers];
+      setServerErrorMessage('');
+      toast({
+        title: "Login Successful",
+        description: "You are logged in as a demo user.",
+      })
+      setServerSuccessMessage("Logged in with demo account successfully.");
+      action.resetForm();
+      setLoading(false);
 
-    if (email in demoUsers && password === "password123") {
-      const user = demoUsers[email as keyof typeof demoUsers]
-      login({
+
+      authLogin({
         id: "1",
-        email,
+        email: values.email,
         name: user.name,
         role: user.role as "admin" | "mechanic" | "receptionist",
-      })
-      router.push("/dashboard")
-    } else {
-      alert(
-        "Invalid credentials. Use demo accounts:\n- admin@autocare360.com\n- mechanic@autocare360.com\n- receptionist@autocare360.com\nPassword: password123",
-      )
+      });
+
+      setIsNavigating(true);
+      return;
     }
 
-    setLoading(false)
+    // 👇 If not demo, proceed with real API login
+    const response = await login(values)
+    console.log(response)
+
+    try {
+      // Check for success
+      if (response.data && response.data.status === 'Success') {
+        // console.log(response.data?.status)
+        setServerErrorMessage('')
+        setServerSuccessMessage(response.data.message)
+        toast({
+          title: "Login Successful",
+          description: response.data.message || "Welcome back!",
+        })
+        action.resetForm()
+        setLoading(false)
+        setIsNavigating(true)
+      }
+      else {
+        if (response.error && 'data' in response.error) {
+          setServerErrorMessage(
+            (response.error.data as { message?: string })?.message || 'An error occurred'
+          );
+          toast({
+            title: "Login Failed",
+            description: (response.error.data as { message?: string })?.message || "An unexpected error occurred.",
+            variant: "destructive"
+          })
+
+        } else {
+          setServerErrorMessage('An unexpected error occurred');
+        }
+      }
+
+
+      setLoading(false)
+    } catch (error) {
+      console.error(error)
+      setLoading(false)
+    } finally {
+      setLoading(false)
+    }
   }
+
+  const { values, handleChange, handleSubmit, errors } = useFormik({
+    initialValues,
+    validationSchema: loginSchema,
+    onSubmit: handleLogin
+  })
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -62,32 +155,55 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">AutoCare360</CardTitle>
           <CardDescription>Vehicle Service Management System</CardDescription>
+          {serverErrorMessage && (
+            <p className='mb-4 text-sm text-red-800 bg-red-100 p-3 text-center rounded-md border border-red-200'>
+              {serverErrorMessage}
+            </p>
+          )}
+          {serverSuccessMessage && (
+            <p className='mb-4 text-sm text-green-800 bg-green-100 p-3 rounded-md border border-green-200'>
+              {serverSuccessMessage}
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type='email'
+                id='email'
+                name='email'
+                value={values.email}
+                onChange={handleChange}
                 required
+                placeholder="Enter your email"
               />
+              {errors.email && (
+                <p className='text-sm text-red-500'>{errors.email}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
-                id="password"
-                type="password"
+                type='password'
+                id='password'
+                name='password'
+                value={values.password}
+                onChange={handleChange}
                 placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              {errors.password && (
+                <p className='text-sm text-red-500'>{errors.password}</p>
+              )}
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              title='Login'
+              disabled={loading}
+              type='submit'
+              className={`${loading ? 'cursor-not-allowed' : ''} w-full`}
+            >
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>

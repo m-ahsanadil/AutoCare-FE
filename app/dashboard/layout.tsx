@@ -8,6 +8,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { LogOut, User } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function DashboardLayout({
   children,
@@ -17,10 +18,11 @@ export default function DashboardLayout({
   const { user, logout } = useAuth()
   const router = useRouter()
 
-  if (!user) {
-    router.push("/login")
-    return null
-  }
+  useEffect(() => {
+    if (!user) {
+      router.push("/login")
+    }
+  }, [user, router]) 
 
   const handleLogout = () => {
     logout()
@@ -39,8 +41,8 @@ export default function DashboardLayout({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <User className="w-4 h-4" />
-              <span className="text-sm font-medium">{user.name}</span>
-              <span className="text-xs text-gray-500 capitalize">({user.role})</span>
+              <span className="text-sm font-medium">{user?.name}</span>
+              <span className="text-xs text-gray-500 capitalize">({user?.role})</span>
             </div>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />

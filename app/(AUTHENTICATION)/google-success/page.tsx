@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
-import { useAuth } from "@/components/auth-provider"
+import { useAuth } from "@/src/lib/context/auth-provider"
 
 export default function GoogleSuccessPage() {
     const router = useRouter()

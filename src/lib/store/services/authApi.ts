@@ -18,10 +18,10 @@ export const authApi = api.injectEndpoints({
     }),
 
     register: builder.mutation({
-      query: (userData) => ({
+      query: (formData) => ({
         url: '/auth/register',
         method: 'POST',
-        body: userData,
+        body: formData, 
       }),
     }),
 

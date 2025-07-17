@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { useAuth } from "@/components/auth-provider"
+import { useAuth } from "@/src/lib/context/auth-provider"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, Users, Car, Calendar, DollarSign, UserCog, Package, Wrench, Settings } from "lucide-react"

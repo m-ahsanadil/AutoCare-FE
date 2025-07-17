@@ -16,7 +16,10 @@ const baseQuery = fetchBaseQuery({
     if (token) {
       headers.set('authorization', `Bearer ${token}`)
     }
-    headers.set('Content-Type', 'application/json')
+    // Only set JSON content-type if NOT sending FormData
+    if (!(headers.get('Content-Type') === null)) {
+      headers.set('Content-Type', 'application/json');
+    }
     return headers;
   },
 })

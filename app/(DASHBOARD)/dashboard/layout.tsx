@@ -71,7 +71,7 @@
 "use client"
 
 import type React from "react"
-import { useAuth } from "@/components/auth-provider"
+import { useAuth } from "@/src/lib/context/auth-provider"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"

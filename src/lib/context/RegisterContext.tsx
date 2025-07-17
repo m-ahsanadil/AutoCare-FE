@@ -54,11 +54,6 @@ export const RegisterProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // const handleSaveRegister = (newUser: User) => {
-  //   console.log('Registering user:', newUser);
-  //   setUser(newUser);
-  // };
-
   const handleSaveRegister = async (newUser: User, onSuccess?: () => void) => {
     try {
       console.log("Registering user:", newUser);

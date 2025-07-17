@@ -7,6 +7,7 @@ export default function ImageCheckedPage() {
                 <input type='file' name='profileImage' />
                 <button type='submit'>Upload</button>
             </form>
+            
         </div>
     )
 }

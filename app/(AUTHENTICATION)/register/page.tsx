@@ -2,75 +2,43 @@
 
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/src/components/atoms/Input';
-import {  ProfileImageUploader } from '@/src/components/molecules/FileUpload';
+import { ProfileImageUploader } from '@/src/components/molecules/FileUpload';
 import { UserRole, UserRoleValues } from '@/src/enum';
 import { useRegister } from '@/src/lib/context/RegisterContext';
 import { Loader2 } from 'lucide-react';
 import React, { ChangeEvent, FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { FormikHelpers, getIn, useFormik } from "formik"
+import { registerSchema } from '@/src/validation/schemas';
+
+
+interface RegisterFormValues {
+    profileImage: File | null;
+    username: string;
+    role: UserRole;
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    phone: string;
+}
+
+const initialRegisterValues: RegisterFormValues = {
+    profileImage: null as File | null,
+    username: '',
+    role: UserRole.CUSTOMER,
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: ''
+}
 
 export default function Register() {
     const { toast } = useToast()
-    const fileInputRef = useRef<HTMLInputElement>(null); // Create a ref for the hidden file input
 
     const { handleSaveRegister, isSuccess, error, isLoading, showPassword, showConfirmPassword, togglePasswordVisibility } = useRegister();
-
-    const [formData, setFormData] = useState({
-        profileImage: null as File | null,
-        username: '',
-        role: 'admin',
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        phone: '',
-    });
-
-    const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    }, []);
-
-
-    const handleSubmit = useCallback(async (e: FormEvent) => {
-        e.preventDefault();
-
-        if (formData.password !== formData.confirmPassword) {
-            toast({
-                title: "Password mismatch",
-                description: "Your password and confirm password do not match.",
-            });
-            return;
-        }
-
-        // Create a copy without confirmPassword field
-        const { confirmPassword, ...dataToSend } = formData
-        await handleSaveRegister(dataToSend);
-
-    }, [formData, toast, handleSaveRegister]);
-
-    // Handle profile image click
-    const handleProfileImageClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    // Handle file input change
-    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setFormData((prev) => ({
-                ...prev,
-                profileImage: file,
-            }));
-        }
-    };
-
-    // Default profile image (you can replace this with your own default image)
-    const defaultProfileImage = "data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100' height='100' fill='%23e5e7eb'/%3e%3cpath d='M50 30c-8.284 0-15 6.716-15 15 0 8.284 6.716 15 15 15s15-6.716 15-15c0-8.284-6.716-15-15-15zm0 35c-11.046 0-20 8.954-20 20v5h40v-5c0-11.046-8.954-20-20-20z' fill='%239ca3af'/%3e%3c/svg%3e";
 
     useEffect(() => {
         if (isSuccess) {
@@ -85,21 +53,55 @@ export default function Register() {
         }
     }, [isSuccess, error]);
 
+    const handleRegisterForm = useCallback(async (values: RegisterFormValues, actions: FormikHelpers<RegisterFormValues>) => {
+        try {
+            // Create a copy without confirmPassword field
+            const { confirmPassword, ...dataToSend } = values
+            await handleSaveRegister(dataToSend)
+            actions.resetForm();
+            actions.setSubmitting(false);
+        } catch (error) {
+            actions.setSubmitting(false);
+            toast({
+                title: "Error",
+                description: "An error occurred while processing your request.",
+                variant: "destructive",
+            });
+        }
+    }, [toast, handleSaveRegister])
+
+    const formik = useFormik({
+        initialValues: initialRegisterValues,
+        validationSchema: registerSchema,
+        onSubmit: handleRegisterForm,
+    });
+
+    const handleImageSelect = (file: File) => {
+        formik.setFieldValue('profileImage', file);
+    };
+
+    // Function to get field error
+    const getFieldError = (fieldName: string) => {
+        const touched = getIn(formik.touched, fieldName);
+        const error = getIn(formik.errors, fieldName);
+        return touched && error ? error : null;
+    };
+
+    const { touched, errors, values, handleBlur, handleChange, handleReset, handleSubmit } = formik;
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6 lg:p-8 overflow-hidden">
             <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-xl w-full max-w-xs sm:max-w-md lg:max-w-lg xl:max-w-xl">
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                     <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center text-gray-900 mb-4 sm:mb-6">
                         Register
                     </h2>
 
-
                     {/* Clickable Profile Image & Profile Image Preview */}
                     <ProfileImageUploader
-                        imageFile={formData.profileImage}
-                        onImageSelect={(file) =>
-                            setFormData((prev) => ({ ...prev, profileImage: file }))
+                        imageUrl={
+                            values.profileImage ? URL.createObjectURL(values.profileImage) : undefined
                         }
+                        onImageSelect={handleImageSelect}
                     />
 
                     {/* Two-column layout for names on larger screens */}
@@ -107,55 +109,56 @@ export default function Register() {
                         <Input
                             label="First Name"
                             name="firstName"
-                            value={formData.firstName}
+                            value={values.firstName}
                             onChange={handleChange}
-                            required
+                            onBlur={handleBlur}
+                            error={getFieldError("firstName")}
                         />
                         <Input
                             label="Last Name"
                             name="lastName"
-                            value={formData.lastName}
+                            value={values.lastName}
                             onChange={handleChange}
-                            required
+                            onBlur={handleBlur}
+                            error={getFieldError("lastName")}
                         />
                     </div>
-
-                    <Input
-                        label="Username"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        required
-                    />
-
                     <Input
                         label="Email"
                         name="email"
-                        type="email"
-                        value={formData.email}
+                        value={values.email}
                         onChange={handleChange}
-                        required
+                        onBlur={handleBlur}
+                        error={getFieldError("email")}
                     />
-
                     <Input
-                        label="Phone"
+                        label="Username"
+                        name="username"
+                        value={values.username}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={getFieldError("username")}
+                    />
+                    <Input
+                        label="Phone Number"
                         name="phone"
                         type="tel"
-                        value={formData.phone}
+                        value={values.phone}
                         onChange={handleChange}
-                        required
+                        onBlur={handleBlur}
+                        error={getFieldError("phone")}
                     />
-
                     {/* Password fields in two-column layout on larger screens */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div className="relative">
                             <Input
                                 label="Password"
+                                type={showPassword ? 'text' : 'password'}
                                 name="password"
-                                type={showPassword ? "text" : "password"}
-                                value={formData.password}
+                                value={values.password}
                                 onChange={handleChange}
-                                required
+                                onBlur={handleBlur}
+                                error={getFieldError("password")}
                             />
                             <button
                                 type="button"
@@ -169,11 +172,12 @@ export default function Register() {
                         <div className="relative">
                             <Input
                                 label="Confirm Password"
+                                type={showPassword ? 'text' : 'password'}
                                 name="confirmPassword"
-                                type={showConfirmPassword ? "text" : "password"}
-                                value={formData.confirmPassword}
+                                value={values.confirmPassword}
                                 onChange={handleChange}
-                                required
+                                onBlur={handleBlur}
+                                error={getFieldError("confirmPassword")}
                             />
                             <button
                                 type="button"
@@ -192,7 +196,7 @@ export default function Register() {
                         </label>
                         <select
                             name="role"
-                            value={formData.role}
+                            value={values.role}
                             onChange={handleChange}
                             className="mt-1 block w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
                             required
@@ -206,7 +210,11 @@ export default function Register() {
                                     {role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')}
                                 </option>
                             ))}
+                            {getFieldError('role') && (
+                                <p className="text-red-500 text-sm">{getFieldError('role')}</p>
+                            )}
                         </select>
+
                     </div>
 
                     <button

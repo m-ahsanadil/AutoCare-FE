@@ -46,7 +46,7 @@ const menuItems = [
     title: "Service Records",
     url: "/dashboard/services",
     icon: Wrench,
-    roles: ["admin", "mechanic"],
+    roles: ["admin", "mechanic", "customer"],
   },
   {
     title: "Billing & Invoices",

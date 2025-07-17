@@ -1,5 +1,3 @@
-'use client'
-
 import { Provider } from 'react-redux'
 import { store, persistor } from '../store'
 import { ReactNode } from 'react'

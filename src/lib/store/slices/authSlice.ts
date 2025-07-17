@@ -7,7 +7,7 @@ export interface AuthState {
     id: string
     email: string
     name: string
-    role: UserRole.Admin | UserRole.Mechanic | UserRole.Receptionist
+    role: UserRole
   } | null
 }
 

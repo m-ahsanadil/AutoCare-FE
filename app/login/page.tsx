@@ -3,7 +3,7 @@
 import type React from "react"
 import { FormikHelpers, useFormik } from 'formik'
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,6 +14,7 @@ import { loginSchema } from "@/src/validation/schemas"
 import { useLoginMutation } from "@/src/lib/store/services"
 import { useToast } from "@/hooks/use-toast"
 import { UserRole } from "@/src/enum"
+import { BASE_URL } from "@/src/dotenv"
 
 
 interface LoginFormValues {
@@ -28,18 +29,19 @@ const initialValues: LoginFormValues = {
 
 const demoUsers = {
   "admin@autocare360.com": {
-    role: UserRole.Admin,
+    role: UserRole.ADMIN,
     name: "John Admin",
   },
   "mechanic@autocare360.com": {
-    role: UserRole.Mechanic,
+    role: UserRole.MECHANIC,
     name: "Mike Mechanic",
   },
   "receptionist@autocare360.com": {
-    role: UserRole.Receptionist,
+    role: UserRole.RECEPTIONIST,
     name: "Sarah Reception",
   },
 };
+
 
 export default function LoginPage() {
 
@@ -50,19 +52,47 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [serverErrorMessage, setServerErrorMessage] = useState('')
   const [serverSuccessMessage, setServerSuccessMessage] = useState('')
-  const [isNavigating, setIsNavigating] = useState(false)
+  const [isNavigating, setIsNavigating] = useState<boolean>(false)
+  const searchParams = useSearchParams();
+
 
   useEffect(() => {
     if (isNavigating) {
-      // Small delay to ensure cookie is properly set before navigation
       const timer = setTimeout(() => {
         router.push('/dashboard')
-      }, 2000)
+      }, 1000)
 
       return () => clearTimeout(timer)
     }
   }, [isNavigating, router])
 
+  useEffect(() => {
+    const error = searchParams.get('error');
+
+    if (error) {
+      let message = 'An error occurred during login.';
+
+      switch (error) {
+        case 'google_auth_failed':
+          message = 'Google login failed. Please try again.';
+          break;
+        case 'token_expired':
+          message = 'Your session has expired. Please login again.';
+          break;
+        // Add more cases as needed
+      }
+
+      toast({
+        title: 'Login Error',
+        description: message,
+        variant: 'destructive',
+      });
+
+      // ✅ Clean the URL after showing the error
+      const cleanUrl = window.location.origin + '/login';
+      window.history.replaceState(null, '', cleanUrl);
+    }
+  }, [searchParams, toast, router]);
 
   const handleLogin = async (values: LoginFormValues, action: FormikHelpers<LoginFormValues>) => {
     setLoading(true)
@@ -78,27 +108,35 @@ export default function LoginPage() {
       setServerSuccessMessage("Logged in with demo account successfully.");
       action.resetForm();
       setLoading(false);
-
-
-      authLogin({
-        id: "1",
-        email: values.email,
-        name: user.name,
-        role: user.role as "admin" | "mechanic" | "receptionist",
-      });
-
       setIsNavigating(true);
       return;
     }
 
     // 👇 If not demo, proceed with real API login
     const response = await login(values)
-    console.log(response)
 
     try {
-      // Check for success
-      if (response.data && response.data.status === 'Success') {
-        // console.log(response.data?.status)
+      if (response.data && response.data.success === true) {
+        const userData = response.data.data.user;
+        const userToken = response.data.data.token;
+
+        // Save to auth context
+        authLogin({
+          id: userData._id,
+          email: userData.email,
+          name: `${userData.firstName} ${userData.lastName}`,
+          role: userData.role,
+          profileImage: userData.profileImage,
+          createdAt: userData.createdAt,
+          firstName: userData.firstName,
+          isActive: userData.isActive,
+          isEmailVerified: userData.isEmailVerified,
+          lastName: userData.lastName,
+          phone: userData.phone,
+          updatedAt: userData.updatedAt,
+          username: userData.username
+        }, userToken);
+
         setServerErrorMessage('')
         setServerSuccessMessage(response.data.message)
         toast({
@@ -108,8 +146,7 @@ export default function LoginPage() {
         action.resetForm()
         setLoading(false)
         setIsNavigating(true)
-      }
-      else {
+      } else {
         if (response.error && 'data' in response.error) {
           setServerErrorMessage(
             (response.error.data as { message?: string })?.message || 'An error occurred'
@@ -119,20 +156,17 @@ export default function LoginPage() {
             description: (response.error.data as { message?: string })?.message || "An unexpected error occurred.",
             variant: "destructive"
           })
-
         } else {
           setServerErrorMessage('An unexpected error occurred');
         }
       }
-
-
-      setLoading(false)
     } catch (error) {
       console.error(error)
       setLoading(false)
     } finally {
       setLoading(false)
     }
+
   }
 
   const { values, handleChange, handleSubmit, errors } = useFormik({
@@ -140,6 +174,11 @@ export default function LoginPage() {
     validationSchema: loginSchema,
     onSubmit: handleLogin
   })
+
+
+  const openGooglePopup = () => {
+    window.location.href = `${BASE_URL}/api/v1/auth/google`;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -207,6 +246,17 @@ export default function LoginPage() {
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
+          <Button
+            className="mt-4 w-full bg-white text-black border border-gray-300 flex items-center justify-center gap-2"
+            onClick={openGooglePopup}>
+            {/* <img
+              src="https://developers.google.com/identity/images/g-logo.png"
+              alt="Google"
+              className="w-5 h-5"
+            /> */}
+            Continue with Google
+          </Button>
+
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm font-medium text-gray-700 mb-2">Demo Accounts:</p>
             <div className="text-xs text-gray-600 space-y-1">

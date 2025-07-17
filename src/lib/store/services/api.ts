@@ -2,9 +2,13 @@ import { BASE_URL } from '@/src/dotenv'
 import { BaseQueryApi, createApi, FetchArgs, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { RootState } from '../'
 
+const VERSION = 'api/v1'
+const REQUEST_TIMEOUT = 30000
 // Base query with common configuration
 const baseQuery = fetchBaseQuery({
-  baseUrl: BASE_URL,
+  baseUrl: `${BASE_URL}/${VERSION}`,
+  timeout: REQUEST_TIMEOUT,
+
   prepareHeaders: (headers, { getState }) => {
     const state = getState() as RootState
     const token = state.auth.token
@@ -12,9 +16,8 @@ const baseQuery = fetchBaseQuery({
     if (token) {
       headers.set('authorization', `Bearer ${token}`)
     }
-
     headers.set('Content-Type', 'application/json')
-    return headers
+    return headers;
   },
 })
 
@@ -25,8 +28,7 @@ const baseQueryWithReauth = async (args: string | FetchArgs, api: BaseQueryApi, 
   // Handle 401 unauthorized
   if (result.error && result.error.status === 401) {
     // Try to refresh token or redirect to login
-    console.log('Token expired, redirecting to login')
-    // You can dispatch logout action here
+    console.log('Token expired or invalid, forcing logout')
   }
 
   return result
@@ -39,10 +41,71 @@ export const api = createApi({
   tagTypes: [
     'Auth',
     'User',
+    'Profile',
     'Product',
     'Order',
     'Category',
-    'Review'
+    'Review',
+    'Dashboard',
+    'Settings',
+    'Notification',
+    'Report',
+    'Inventory',
+    'Customer',
+    'Service',
+    'Appointment',
+    'Invoice',
+    'Payment',
   ],
   endpoints: () => ({}),
+  keepUnusedDataFor: 60, // Keep unused data for 60 seconds
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
 })
+
+
+// Helper function to clear all cached data
+export const clearAllCache = () => {
+  return api.util.resetApiState()
+}
+
+// Helper function to invalidate specific tags
+export const invalidateApiTags = (
+  tags: (
+    | 'Auth'
+    | 'User'
+    | 'Profile'
+    | 'Product'
+    | 'Order'
+    | 'Category'
+    | 'Review'
+    | 'Dashboard'
+    | 'Settings'
+    | 'Notification'
+    | 'Report'
+    | 'Inventory'
+    | 'Customer'
+    | 'Service'
+    | 'Appointment'
+    | 'Invoice'
+    | 'Payment'
+  )[]
+) => {
+  // Map string tags to TagDescription objects
+  const tagDescriptions = tags.map(tag => ({ type: tag }));
+  return api.util.invalidateTags(tagDescriptions);
+}
+
+// Network status utilities
+export const isNetworkError = (error: any): boolean => {
+  return error?.status === 'FETCH_ERROR' || error?.status === 'TIMEOUT_ERROR'
+}
+
+export const isServerError = (error: any): boolean => {
+  return error?.status >= 500 && error?.status < 600
+}
+
+export const isClientError = (error: any): boolean => {
+  return error?.status >= 400 && error?.status < 500
+}

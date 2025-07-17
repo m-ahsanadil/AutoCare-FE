@@ -1,3 +1,4 @@
+"use client"
 import { AuthProvider } from "@/components/auth-provider";
 import { StoreProvider } from "./StoreProvider";
 import { ReactNode } from "react";

@@ -1,4 +1,3 @@
-// store/index.js
 import { configureStore, combineReducers } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
 import {
@@ -15,8 +14,6 @@ import storage from 'redux-persist/lib/storage'
 import { api } from './services'
 import { NODE_ENV } from '@/src/dotenv'
 import authSlice from './slices/authSlice'
-// Additional slice reducers if needed
-// import authSlice from './slices/authSlice'
 
 const rootReducer = combineReducers({
   [api.reducerPath]: api.reducer,
@@ -26,7 +23,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth'],
+  whitelist: [],
   blacklist: [],
 }
 

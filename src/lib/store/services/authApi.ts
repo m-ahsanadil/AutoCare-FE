@@ -12,6 +12,7 @@ export const authApi = api.injectEndpoints({
       query: (credentials) => ({
         url: '/auth/login',
         method: 'POST',
+        credentials: "include",
         body: credentials,
       }),
       invalidatesTags: ['Auth'],
@@ -21,7 +22,7 @@ export const authApi = api.injectEndpoints({
       query: (formData) => ({
         url: '/auth/register',
         method: 'POST',
-        body: formData, 
+        body: formData,
       }),
     }),
 

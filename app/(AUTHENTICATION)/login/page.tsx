@@ -18,12 +18,12 @@ import { BASE_URL } from "@/src/dotenv"
 
 
 interface LoginFormValues {
-  email: string
+  usernameOrEmail: string
   password: string
 }
 
 const initialValues: LoginFormValues = {
-  email: '',
+  usernameOrEmail: '',
   password: ''
 }
 
@@ -54,12 +54,13 @@ export default function LoginPage() {
   const [serverSuccessMessage, setServerSuccessMessage] = useState('')
   const [isNavigating, setIsNavigating] = useState<boolean>(false)
   const searchParams = useSearchParams();
-
+  const { user } = useAuth()
 
   useEffect(() => {
     if (isNavigating) {
+      const role = user?.role
       const timer = setTimeout(() => {
-        router.push('/dashboard')
+        router.push(`${role}/dashboard`)
       }, 1000)
 
       return () => clearTimeout(timer)
@@ -96,10 +97,10 @@ export default function LoginPage() {
 
   const handleLogin = async (values: LoginFormValues, action: FormikHelpers<LoginFormValues>) => {
     setLoading(true)
-
+    
     // ✅ Check for demo login first
-    if (values.email in demoUsers && values.password === "password123") {
-      const user = demoUsers[values.email as keyof typeof demoUsers];
+    if (values.usernameOrEmail in demoUsers && values.password === "password123") {
+      const user = demoUsers[values.usernameOrEmail as keyof typeof demoUsers];
       setServerErrorMessage('');
       toast({
         title: "Login Successful",
@@ -114,6 +115,7 @@ export default function LoginPage() {
 
     // 👇 If not demo, proceed with real API login
     const response = await login(values)
+    console.log(response);
 
     try {
       if (response.data && response.data.success === true) {
@@ -208,18 +210,17 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="usernameOrEmail">Username or Email</Label>
               <Input
-                type='email'
-                id='email'
-                name='email'
-                value={values.email}
+                id='usernameOrEmail'
+                name='usernameOrEmail'
+                value={values.usernameOrEmail}
                 onChange={handleChange}
                 required
-                placeholder="Enter your email"
+                placeholder="Enter your username or email"
               />
-              {errors.email && (
-                <p className='text-sm text-red-500'>{errors.email}</p>
+              {errors.usernameOrEmail && (
+                <p className='text-sm text-red-500'>{errors.usernameOrEmail}</p>
               )}
             </div>
             <div className="space-y-2">

@@ -46,10 +46,7 @@ export default function SetPasswordPage() {
             if (data.data?.redirectUrl) {
                 // Redirect to Google success page
                 window.location.href = data.data.redirectUrl;
-            } else {
-                // Fallback redirect
-                router.push("/dashboard")
-            }
+            } 
         }
     }, [isSuccess, data, toast, router])
 

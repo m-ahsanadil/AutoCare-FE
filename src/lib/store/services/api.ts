@@ -1,17 +1,18 @@
 import { BASE_URL } from '@/src/dotenv'
 import { BaseQueryApi, createApi, FetchArgs, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { RootState } from '../'
+import { useAuth } from '../../context/auth-provider'
 
 const VERSION = 'api/v1'
 const REQUEST_TIMEOUT = 30000
+
 // Base query with common configuration
 const baseQuery = fetchBaseQuery({
   baseUrl: `${BASE_URL}/${VERSION}`,
   timeout: REQUEST_TIMEOUT,
 
   prepareHeaders: (headers, { getState }) => {
-    const state = getState() as RootState
-    const token = state.auth.token
+    const token = localStorage.getItem("autocare360_token");
 
     if (token) {
       headers.set('authorization', `Bearer ${token}`)
@@ -26,16 +27,14 @@ const baseQuery = fetchBaseQuery({
 
 // Base query with re-auth logic
 const baseQueryWithReauth = async (args: string | FetchArgs, api: BaseQueryApi, extraOptions: {}) => {
-  let result = await baseQuery(args, api, extraOptions)
+  const result = await baseQuery(args, api, extraOptions);
 
-  // Handle 401 unauthorized
   if (result.error && result.error.status === 401) {
-    // Try to refresh token or redirect to login
-    console.log('Token expired or invalid, forcing logout')
+    console.warn("Unauthorized - redirecting or refreshing token");
   }
 
-  return result
-}
+  return result;
+};
 
 // Create the base API slice
 export const api = createApi({

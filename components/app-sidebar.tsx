@@ -16,55 +16,56 @@ import { useAuth } from "@/src/lib/context/auth-provider"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, Users, Car, Calendar, DollarSign, UserCog, Package, Wrench, Settings } from "lucide-react"
+import { UserRole } from "@/src/enum"
 
 const menuItems = [
   {
     title: "Dashboard",
     url: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["admin", "mechanic", "receptionist"],
+    roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MECHANIC, UserRole.RECEPTIONIST],
   },
   {
     title: "Customers",
     url: "/dashboard/customers",
     icon: Users,
-    roles: ["admin", "receptionist"],
+    roles: [UserRole.ADMIN, UserRole.RECEPTIONIST],
   },
   {
     title: "Vehicles",
     url: "/dashboard/vehicles",
     icon: Car,
-    roles: ["admin", "mechanic", "receptionist"],
+    roles: [UserRole.ADMIN, UserRole.MECHANIC, UserRole.RECEPTIONIST],
   },
   {
     title: "Appointments",
     url: "/dashboard/appointments",
     icon: Calendar,
-    roles: ["admin", "mechanic", "receptionist"],
+    roles: [UserRole.ADMIN, UserRole.MECHANIC, UserRole.RECEPTIONIST],
   },
   {
     title: "Service Records",
     url: "/dashboard/services",
     icon: Wrench,
-    roles: ["admin", "mechanic", "customer"],
+    roles: [UserRole.ADMIN, UserRole.MECHANIC, UserRole.CUSTOMER],
   },
   {
     title: "Billing & Invoices",
     url: "/dashboard/billing",
     icon: DollarSign,
-    roles: ["admin", "receptionist"],
+    roles: [UserRole.ADMIN, UserRole.RECEPTIONIST],
   },
   {
     title: "Staff Management",
     url: "/dashboard/staff",
     icon: UserCog,
-    roles: ["admin"],
+    roles: [UserRole.ADMIN],
   },
   {
     title: "Inventory",
     url: "/dashboard/inventory",
     icon: Package,
-    roles: ["admin", "mechanic"],
+    roles: [UserRole.ADMIN, UserRole.MECHANIC],
   },
 ]
 
@@ -72,8 +73,9 @@ export function AppSidebar() {
   const { user } = useAuth()
   const pathname = usePathname()
 
-  const filteredMenuItems = menuItems.filter((item) => item.roles.includes(user?.role || ""))
-
+  const filteredMenuItems = menuItems.filter((item) =>
+    user?.role ? item.roles.includes(user.role) : false
+  )
   return (
     <Sidebar>
       <SidebarHeader className="p-4">

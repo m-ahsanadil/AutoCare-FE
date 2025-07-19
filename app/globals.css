@@ -63,7 +63,297 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .scrollbar-custom {
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+/* Alternative: More color variations */
+@layer utilities {
+  .scrollbar-slate {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+
+  .scrollbar-slate::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  .scrollbar-slate::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    /* slate-100 */
+    border-radius: 0.25rem;
+  }
+
+  .scrollbar-slate::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    /* slate-300 */
+    border-radius: 0.25rem;
+  }
+
+  .scrollbar-slate::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+    /* slate-400 */
+
+    /* Blue Theme */
+    .scrollbar-blue {
+      scrollbar-width: thin;
+      scrollbar-color: #3b82f6 #eff6ff;
+      /* blue-500, blue-50 */
+    }
+
+    .scrollbar-blue::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar-blue::-webkit-scrollbar-track {
+      background: #eff6ff;
+      /* blue-50 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-blue::-webkit-scrollbar-thumb {
+      background: #3b82f6;
+      /* blue-500 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-blue::-webkit-scrollbar-thumb:hover {
+      background: #1d4ed8;
+      /* blue-700 */
+    }
+
+    /* Green Theme */
+    .scrollbar-green {
+      scrollbar-width: thin;
+      scrollbar-color: #10b981 #ecfdf5;
+      /* emerald-500, emerald-50 */
+    }
+
+    .scrollbar-green::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar-green::-webkit-scrollbar-track {
+      background: #ecfdf5;
+      /* emerald-50 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-green::-webkit-scrollbar-thumb {
+      background: #10b981;
+      /* emerald-500 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-green::-webkit-scrollbar-thumb:hover {
+      background: #047857;
+      /* emerald-700 */
+    }
+
+    /* Purple Theme */
+    .scrollbar-purple {
+      scrollbar-width: thin;
+      scrollbar-color: #8b5cf6 #faf5ff;
+      /* violet-500, violet-50 */
+    }
+
+    .scrollbar-purple::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar-purple::-webkit-scrollbar-track {
+      background: #faf5ff;
+      /* violet-50 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-purple::-webkit-scrollbar-thumb {
+      background: #8b5cf6;
+      /* violet-500 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-purple::-webkit-scrollbar-thumb:hover {
+      background: #6d28d9;
+      /* violet-700 */
+    }
+
+    /* Orange Theme */
+    .scrollbar-orange {
+      scrollbar-width: thin;
+      scrollbar-color: #f97316 #fff7ed;
+      /* orange-500, orange-50 */
+    }
+
+    .scrollbar-orange::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar-orange::-webkit-scrollbar-track {
+      background: #fff7ed;
+      /* orange-50 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-orange::-webkit-scrollbar-thumb {
+      background: #f97316;
+      /* orange-500 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-orange::-webkit-scrollbar-thumb:hover {
+      background: #c2410c;
+      /* orange-700 */
+    }
+
+    /* Pink Theme */
+    .scrollbar-pink {
+      scrollbar-width: thin;
+      scrollbar-color: #ec4899 #fdf2f8;
+      /* pink-500, pink-50 */
+    }
+
+    .scrollbar-pink::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar-pink::-webkit-scrollbar-track {
+      background: #fdf2f8;
+      /* pink-50 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-pink::-webkit-scrollbar-thumb {
+      background: #ec4899;
+      /* pink-500 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-pink::-webkit-scrollbar-thumb:hover {
+      background: #be185d;
+      /* pink-700 */
+    }
+
+    /* Dark Theme */
+    .scrollbar-dark {
+      scrollbar-width: thin;
+      scrollbar-color: #4b5563 #1f2937;
+      /* gray-600, gray-800 */
+    }
+
+    .scrollbar-dark::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar-dark::-webkit-scrollbar-track {
+      background: #1f2937;
+      /* gray-800 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-dark::-webkit-scrollbar-thumb {
+      background: #4b5563;
+      /* gray-600 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+      /* gray-500 */
+    }
+
+    /* Red Theme */
+    .scrollbar-red {
+      scrollbar-width: thin;
+      scrollbar-color: #ef4444 #fef2f2;
+      /* red-500, red-50 */
+    }
+
+    .scrollbar-red::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar-red::-webkit-scrollbar-track {
+      background: #fef2f2;
+      /* red-50 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-red::-webkit-scrollbar-thumb {
+      background: #ef4444;
+      /* red-500 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-red::-webkit-scrollbar-thumb:hover {
+      background: #dc2626;
+      /* red-600 */
+    }
+
+    /* Cyan Theme */
+    .scrollbar-cyan {
+      scrollbar-width: thin;
+      scrollbar-color: #06b6d4 #ecfeff;
+      /* cyan-500, cyan-50 */
+    }
+
+    .scrollbar-cyan::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar-cyan::-webkit-scrollbar-track {
+      background: #ecfeff;
+      /* cyan-50 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-cyan::-webkit-scrollbar-thumb {
+      background: #06b6d4;
+      /* cyan-500 */
+      border-radius: 4px;
+    }
+
+    .scrollbar-cyan::-webkit-scrollbar-thumb:hover {
+      background: #0891b2;
+      /* cyan-600 */
+    }
   }
 }

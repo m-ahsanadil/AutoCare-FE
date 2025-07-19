@@ -36,6 +36,6 @@ export const registerSchema = Yup.object({
 });
 
 export const loginSchema = Yup.object({
-    email: Yup.string().required("Email is required"),
+    usernameOrEmail: Yup.string().required("Username or email is required"),
     password: Yup.string().required("Password is required"),
 });

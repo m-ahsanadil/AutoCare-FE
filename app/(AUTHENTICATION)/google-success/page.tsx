@@ -37,7 +37,7 @@ export default function GoogleSuccessPage() {
                     description: "Logged in with Google successfully!",
                 })
 
-                router.push("/dashboard")
+                router.push(`${user.role}/dashboard`)
             }
         } catch (err) {
             console.error("Google login error:", err)

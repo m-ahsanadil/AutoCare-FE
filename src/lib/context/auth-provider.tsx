@@ -3,7 +3,7 @@
 import { UserRole } from "@/src/enum"
 import type React from "react"
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react"
 
 type User = {
   id: string
@@ -43,26 +43,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem("autocare360_token")
 
     if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser))
-      setToken(storedToken)
+      try {
+        setUser(JSON.parse(storedUser))
+        setToken(storedToken)
+      } catch (error) {
+        console.error("Error parsing stored user data:", error)
+        // Clear corrupted data
+        localStorage.removeItem("autocare360_user")
+        localStorage.removeItem("autocare360_token")
+      }
     }
     setIsLoading(false)
   }, [])
 
 
-  const login = (userData: User, userToken: string) => {
+  const login = useCallback((userData: User, userToken: string) => {
     setUser(userData)
     setToken(userToken)
     localStorage.setItem("autocare360_user", JSON.stringify(userData))
     localStorage.setItem("autocare360_token", userToken)
-  }
+  }, [])
 
-  const logout = () => {
-    setUser(null)
-    setToken(null)
-    localStorage.removeItem("autocare360_user")
-    localStorage.removeItem("autocare360_token")
-  }
+  const logout = useCallback(async () => {
+    try {
+      // Call logout API if token exists
+      if (token) {
+        await fetch('http://localhost:8000/api/v1/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Logout API error:', error)
+      // Continue with logout even if API call fails
+    } finally {
+      // Clear state and localStorage
+      setUser(null)
+      setToken(null)
+      localStorage.removeItem("autocare360_user")
+      localStorage.removeItem("autocare360_token")
+    }
+  }, [token])
 
   return (
     <AuthContext.Provider

@@ -115,14 +115,40 @@
 
 
 "use client"
-import {  type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import DashboardLayout from "@/src/components/pages/DashboardLayout"
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/src/lib/context/auth-provider";
+
+const allowedRoles = ["admin", "mechanic", "super_admin", "customer", "receptionist"];
 
 interface Props {
   children: ReactNode;
 }
 
 export default function Layout({ children }: Props) {
+  const { role } = useParams();
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    // Block unknown roles
+    if (typeof role !== "string" || !allowedRoles.includes(role)) {
+      router.replace(`/invalid-role?role=${role}&reason=invalid`);
+      return;
+    }
+
+    // Block mismatched roles
+    if (user && user.role !== role) {
+      router.replace(`/invalid-role?role=${role}&reason=unauthorized`);
+    }
+
+  }, [role, user, isLoading, router]);
+
+  if (isLoading || !user || user.role !== role) return null;
+
   return (
     <DashboardLayout>
       {children}

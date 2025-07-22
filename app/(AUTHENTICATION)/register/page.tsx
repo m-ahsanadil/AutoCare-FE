@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react';
 import React, { ChangeEvent, FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { FormikHelpers, getIn, useFormik } from "formik"
 import { registerSchema } from '@/src/validation/schemas';
+import { getFieldError } from '@/src/utils/formikHelpers';
 
 
 interface RegisterFormValues {
@@ -80,12 +81,6 @@ export default function Register() {
         formik.setFieldValue('profileImage', file);
     };
 
-    // Function to get field error
-    const getFieldError = (fieldName: string) => {
-        const touched = getIn(formik.touched, fieldName);
-        const error = getIn(formik.errors, fieldName);
-        return touched && error ? error : null;
-    };
 
     const { touched, errors, values, handleBlur, handleChange, handleReset, handleSubmit } = formik;
     return (
@@ -112,7 +107,8 @@ export default function Register() {
                             value={values.firstName}
                             onChange={handleChange}
                             onBlur={handleBlur}
-                            error={getFieldError("firstName")}
+                            error={getFieldError(touched, errors, "firstName")}
+                            required
                         />
                         <Input
                             label="Last Name"
@@ -120,7 +116,8 @@ export default function Register() {
                             value={values.lastName}
                             onChange={handleChange}
                             onBlur={handleBlur}
-                            error={getFieldError("lastName")}
+                            error={getFieldError(touched, errors, "lastName")}
+                            required
                         />
                     </div>
                     <Input
@@ -129,7 +126,8 @@ export default function Register() {
                         value={values.email}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        error={getFieldError("email")}
+                        error={getFieldError(touched, errors, "email")}
+                        required
                     />
                     <Input
                         label="Username"
@@ -137,7 +135,8 @@ export default function Register() {
                         value={values.username}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        error={getFieldError("username")}
+                        error={getFieldError(touched, errors, "username")}
+                        required
                     />
                     <Input
                         label="Phone Number"
@@ -146,7 +145,8 @@ export default function Register() {
                         value={values.phone}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        error={getFieldError("phone")}
+                        error={getFieldError(touched, errors, "phone")}
+                        required
                     />
                     {/* Password fields in two-column layout on larger screens */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -158,7 +158,8 @@ export default function Register() {
                                 value={values.password}
                                 onChange={handleChange}
                                 onBlur={handleBlur}
-                                error={getFieldError("password")}
+                                error={getFieldError(touched, errors, "password")}
+                                required
                             />
                             <button
                                 type="button"
@@ -177,7 +178,8 @@ export default function Register() {
                                 value={values.confirmPassword}
                                 onChange={handleChange}
                                 onBlur={handleBlur}
-                                error={getFieldError("confirmPassword")}
+                                error={getFieldError(touched, errors, "confirmPassword")}
+                                required
                             />
                             <button
                                 type="button"
@@ -210,8 +212,8 @@ export default function Register() {
                                     {role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')}
                                 </option>
                             ))}
-                            {getFieldError('role') && (
-                                <p className="text-red-500 text-sm">{getFieldError('role')}</p>
+                            {getFieldError(touched, errors, 'role') && (
+                                <p className="text-red-500 text-sm">{getFieldError(touched, errors, 'role')}</p>
                             )}
                         </select>
 
@@ -219,7 +221,7 @@ export default function Register() {
 
                     <button
                         type="submit"
-                        className="flex items-center justify-center w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-2 sm:py-3 px-4 rounded-md transition-colors duration-200 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className={`flex items-center justify-center w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-2 sm:py-3 px-4 rounded-md transition-colors duration-200 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isLoading ? 'cursor-not-allowed' : ''} w-full`}
                     >
                         {isLoading ? (
                             <>

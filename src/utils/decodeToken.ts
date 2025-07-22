@@ -1,4 +1,3 @@
-// utils/decodeToken.ts
 export function decodeJWT(token: string): any | null {
   try {
     const base64Url = token.split(".")[1];

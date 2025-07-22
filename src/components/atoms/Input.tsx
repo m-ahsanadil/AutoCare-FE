@@ -40,7 +40,7 @@ export const Input: FC<Props> = ({
     };
 
     return (
-        <div className="w-full">
+        <div className="w-full space-y-2">
             <label
                 htmlFor={name}
                 className={`block font-medium text-gray-700 mb-1 ${labelSizeClasses[size]}`}
@@ -66,7 +66,7 @@ export const Input: FC<Props> = ({
           disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
           transition-colors duration-200
           ${sizeClasses[size]}
-          ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}
+          ${error ? 'border-red-300 focus:ring-red-400 focus:border-red-400' : ''}
         `}
             />
             {error && (

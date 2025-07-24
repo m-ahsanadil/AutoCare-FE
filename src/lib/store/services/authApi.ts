@@ -40,23 +40,31 @@ export const authApi = api.injectEndpoints({
         url: '/auth/set-password',
         method: 'POST',
         body: { password },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       }),
       invalidatesTags: ['Auth'],
     }),
 
     // Logout mutation
-    logout: builder.mutation<{ success: boolean; message: string }, string>({
-      query: (token) => ({
+    logout: builder.mutation<
+      { message: string; success: boolean }, // Response type
+      void // No request body needed
+    >({
+      query: () => ({
         url: '/auth/logout',
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include', // This includes cookies/credentials
       }),
-      invalidatesTags: ['Auth'],
+      invalidatesTags: ['Auth', 'User', 'Profile'],
+      // Optional: Clear all cache on logout
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Clear all RTK Query cache on successful logout
+          dispatch(api.util.resetApiState());
+        } catch (error) {
+          console.error('Logout failed:', error);
+        }
+      },
     }),
   }),
 })

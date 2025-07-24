@@ -1,144 +1,84 @@
-// 'use client'
-
-// import { useEffect } from "react"
-// import { useRouter, useSearchParams } from "next/navigation"
-// import { useToast } from "@/hooks/use-toast"
-// import { Loader2 } from "lucide-react"
-// import { useAuth } from "@/src/lib/context/auth-provider"
-
-// export default function GoogleSuccessPage() {
-//     const router = useRouter()
-//     const params = useSearchParams()
-//     const { toast } = useToast()
-//     const { login } = useAuth()
-
-//     useEffect(() => {
-//         const token = params.get("token")
-//         const encodedUser = params.get("user")
-
-//         if (!token || !encodedUser) {
-//             toast({
-//                 title: "Login Failed",
-//                 description: "Missing authentication data",
-//                 variant: "destructive",
-//             })
-//             router.push("/login")
-//             return
-//         }
-
-//         try {
-//             const decodedUserJson = decodeURIComponent(encodedUser)
-//             const user = JSON.parse(decodedUserJson)
-//             if (!user || !user.id) return
-//             if (user) {
-//                 login(user, token)
-//                 toast({
-//                     title: "Success",
-//                     description: "Logged in with Google successfully!",
-//                 })
-
-//                 router.push(`${user.role}/dashboard`)
-//             }
-//         } catch (err) {
-//             console.error("Google login error:", err)
-//             toast({
-//                 title: "Login Error",
-//                 description: "Unable to decode user data",
-//                 variant: "destructive",
-//             })
-//             router.push("/login")
-//         }
-//     }, [])
-
-//     return (
-//         <div className="flex flex-col items-center justify-center h-screen text-gray-700">
-//             <Loader2 className="w-6 h-6 animate-spin mb-2 text-blue-600" />
-//             <p className="text-sm font-medium">Logging you in via Google...</p>
-//         </div>
-//     )
-// }
-
 'use client';
 
+import Image from "next/image";
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/src/lib/context/auth-provider';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-interface UserData {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    name: string;
-    role: string;
-    profileImage?: string;
-    createdAt: string;
-    isActive: boolean;
-    isEmailVerified: boolean;
-    phone?: string;
-    updatedAt: string;
-    username: string;
-}
-
 export default function GoogleSuccessPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { login, logout: authLogout } = useAuth();
+    const { toast } = useToast()
+    const { login, user, logout } = useAuth();
+    const [error, setError] = useState('');
+    const [isRedirecting, setIsRedirecting] = useState(false);
     const token = searchParams.get('token');
     const userParam = searchParams.get('user');
 
-    const [userData, setUserData] = useState<UserData | null>(null);
-    const [error, setError] = useState('');
+
 
     useEffect(() => {
-        if (userParam && token) {
+        const processAuth = async () => {
             try {
-                const decoded = JSON.parse(decodeURIComponent(userParam));
-                setUserData(decoded);
+                // Validation
+                if (!token || !userParam) {
+                    toast({
+                        title: "Login Failed",
+                        description: "Missing authentication data",
+                        variant: "destructive",
+                    })
+                    throw new Error('Missing authentication data. Please try logging in again.');
+                }
 
-                // Use the login function from useAuth instead of localStorage directly
-                login(decoded, token);
+                // Parse user data
+                const decodedUserData = JSON.parse(decodeURIComponent(userParam));
 
-                console.log('✅ Google OAuth Success');
-                console.log('User Data:', decoded);
-                console.log('Token:', token);
+                // Attempt login
+                login(decodedUserData, token);
 
-            } catch (e) {
-                console.error('Error parsing user data:', e);
-                setError('Failed to parse user information');
+                toast({
+                    title: "Success",
+                    description: "Logged in with Google successfully!",
+                })
+
+                // Redirect after success
+                setTimeout(() => {
+                    setIsRedirecting(true);
+                    router.push(`/${decodedUserData.role}/dashboard`);
+                }, 2000);
+
+            } catch (error) {
+                setError('No user data or token received');
+                toast({
+                    title: "Login Error",
+                    description: "Unable to decode user data",
+                    variant: "destructive",
+                })
+                router.push('/login?error=google_auth_failed');
             }
-        } else {
-            setError('No user data or token received');
         }
-    }, [token, userParam]);
+        processAuth();
+    }, [searchParams, login, router]);
 
-    const handleContinue = () => {
-        // Redirect to dashboard or home page
-        router.push(`/${userData?.role}/dashboard`);
-    };
+
     const handleLogout = async () => {
         try {
-            // Call logout endpoint
-            await fetch('http://localhost:8000/api/v1/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            // Use the logout function from useAuth
-            authLogout();
-
-            // Redirect to login
-            router.push('/login');
-        } catch (err) {
-            console.error('Logout error:', err);
-            // Still logout and redirect even if API call fails
-            authLogout();
-            router.push('/login');
+            await logout();
+        } catch (error) {
+            console.error('❌ google success logout error:', error);
+            // You could show a toast notification here if needed
         }
     };
+
+    if (!user && !error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-gray-600">
+                Redirecting...
+            </div>
+        );
+    }
+
 
     if (error) {
         return (
@@ -168,45 +108,47 @@ export default function GoogleSuccessPage() {
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome!</h2>
                     <p className="text-gray-600">Google authentication successful</p>
                 </div>
+                {isRedirecting && (
+                    <div className="text-center text-sm text-gray-500 mb-4">
+                        Redirecting to dashboard...
+                    </div>
+                )}
 
-                {userData && (
+                {user && (
                     <div className="space-y-4">
                         <div className="bg-gray-50 p-4 rounded-md">
                             <div className="flex items-center mb-3">
-                                {userData.profileImage ? (
-                                    <img
-                                        src={userData.profileImage}
-                                        alt="Profile"
-                                        className="w-12 h-12 rounded-full mr-3"
-                                    />
+                                {user.profileImage ? (
+                                    <div className="relative w-12 h-12 mr-3">
+                                        <Image
+                                            src={user.profileImage}
+                                            alt="Profile"
+                                            fill
+                                            className="rounded-full object-cover"
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="w-12 h-12 bg-gray-300 rounded-full mr-3 flex items-center justify-center">
                                         <span className="text-gray-600 font-bold">
-                                            {userData.firstName[0]}{userData.lastName[0]}
+                                            {user.firstName[0]}{user.lastName[0]}
                                         </span>
                                     </div>
                                 )}
                                 <div>
-                                    <h3 className="font-semibold text-gray-900">{userData.name}</h3>
-                                    <p className="text-sm text-gray-600">{userData.email}</p>
+                                    <h3 className="font-semibold text-gray-900">{user.name}</h3>
+                                    <p className="text-sm text-gray-600">{user.email}</p>
                                 </div>
                             </div>
 
                             <div className="text-sm text-gray-600 space-y-1">
-                                <p><strong>Role:</strong> {userData.role}</p>
-                                <p><strong>Username:</strong> {userData.username}</p>
-                                <p><strong>Account Status:</strong> {userData.isActive ? 'Active' : 'Inactive'}</p>
-                                <p><strong>Email Verified:</strong> {userData.isEmailVerified ? 'Yes' : 'No'}</p>
+                                <p><strong>Role:</strong> {user.role}</p>
+                                <p><strong>Username:</strong> {user.username}</p>
+                                <p><strong>Account Status:</strong> {user.isActive ? 'Active' : 'Inactive'}</p>
+                                <p><strong>Email Verified:</strong> {user.isEmailVerified ? 'Yes' : 'No'}</p>
                             </div>
                         </div>
 
                         <div className="flex space-x-3">
-                            <button
-                                onClick={handleContinue}
-                                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200"
-                            >
-                                Continue to Dashboard
-                            </button>
 
                             <button
                                 onClick={handleLogout}
@@ -219,13 +161,13 @@ export default function GoogleSuccessPage() {
                 )}
 
                 {/* Development Debug Info */}
-                {process.env.NODE_ENV === 'development' && userData && (
+                {process.env.NODE_ENV === 'development' && user && (
                     <details className="mt-6 text-xs">
                         <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
                             Debug Info (Development Only)
                         </summary>
                         <pre className="mt-2 bg-gray-100 p-3 rounded text-xs overflow-auto">
-                            {JSON.stringify(userData, null, 2)}
+                            {JSON.stringify(user, null, 2)}
                         </pre>
                         <p className="mt-2 text-gray-600">
                             <strong>Token:</strong> {token?.substring(0, 20)}...

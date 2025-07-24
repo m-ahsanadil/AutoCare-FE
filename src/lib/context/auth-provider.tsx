@@ -4,6 +4,7 @@ import { UserRole } from "@/src/enum"
 import type React from "react"
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react"
+import { useLogoutMutation } from "../store/services"
 
 type User = {
   id: string
@@ -24,9 +25,11 @@ type User = {
 type AuthContextType = {
   user: User | null
   login: (user: User, token: string) => void
-  logout: () => void
+  logout: () => Promise<void>
   isLoading: boolean
-  token: string | null
+  token: string | null;
+  isLoggingOut: boolean
+
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -35,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [logoutMutation, { isLoading: isLoggingOut }] = useLogoutMutation()
 
 
   useEffect(() => {
@@ -68,25 +72,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // Call logout API if token exists
       if (token) {
-        await fetch('http://localhost:8000/api/v1/auth/logout', {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+        await logoutMutation().unwrap();
+        console.log('✅ Logout API call successful')
       }
     } catch (error) {
-      console.error('Logout API error:', error)
+      console.error('❌ Logout API error:', error)
       // Continue with logout even if API call fails
     } finally {
       // Clear state and localStorage
       setUser(null)
       setToken(null)
       localStorage.removeItem("autocare360_user")
-      localStorage.removeItem("autocare360_token")
+      localStorage.removeItem("autocare360_token");
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login'
+      }
     }
-  }, [token])
+  }, [token, logoutMutation])
 
   return (
     <AuthContext.Provider
@@ -95,7 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         isLoading,
-        token
+        token,
+        isLoggingOut
       }}
     >
       {children}

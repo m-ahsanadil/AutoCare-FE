@@ -1,7 +1,7 @@
 'use client';
 import { useUI } from "@/src/lib/context/UIContext";
-import { Bell, Menu, User } from "lucide-react";
-import { usePathname, useRouter } from 'next/navigation'
+import { Menu } from "lucide-react";
+import { usePathname } from 'next/navigation'
 
 
 export const Header = () => {

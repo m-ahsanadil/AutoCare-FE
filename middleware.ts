@@ -17,9 +17,6 @@ export function middleware(request: NextRequest) {
     if (token && publicRoutes.includes(pathname)) {
         const decoded = decodeJWT(token);
         const role = decoded?.role;
-
-        console.log("Redirecting authenticated user to:", `/${role}/dashboard`);
-
         if (role) {
             const url = request.nextUrl.clone();
             url.pathname = `/${role}/dashboard`; // dynamic based on role
@@ -34,8 +31,6 @@ export function middleware(request: NextRequest) {
         url.pathname = "/";
         return NextResponse.redirect(url);
     }
-
-    console.log("Continuing to:", pathname);
     return NextResponse.next();
 }
 

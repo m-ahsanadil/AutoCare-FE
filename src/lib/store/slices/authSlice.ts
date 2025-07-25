@@ -1,6 +1,35 @@
 import { UserRole } from '@/src/enum'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
+export interface SetPasswordRequest {
+  password: string;
+  userId: string;
+}
+
+export interface SetPasswordResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: {
+      _id: string;
+      username: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      role: 'customer' | 'admin' | string; // You can narrow this union if roles are fixed
+      profileImage: string;
+      isActive: boolean;
+      isEmailVerified: boolean;
+      lastLogin: string; // ISO date string
+      createdAt: string;
+      updatedAt: string;
+    };
+    redirectUrl: string;
+    token: string;
+  };
+  timestamp: string;
+}
+
 export interface AuthState {
   token: string | null
   user: {

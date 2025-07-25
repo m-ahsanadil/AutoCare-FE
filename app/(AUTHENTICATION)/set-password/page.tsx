@@ -1,183 +1,90 @@
-
-// 'use client'
-
-// import { useEffect, useState } from "react"
-// import { useRouter, useSearchParams } from "next/navigation"
-// import { Input } from "@/components/ui/input"
-// import { Button } from "@/components/ui/button"
-// import { useToast } from "@/hooks/use-toast"
-// import { useSetPasswordMutation } from "@/src/lib/store/services/authApi"
-// import { Loader2 } from "lucide-react"
-
-// export default function SetPasswordPage() {
-//     const router = useRouter()
-//     const { toast } = useToast()
-//     const [setPassword, { isLoading, isSuccess, error, data }] = useSetPasswordMutation()
-//     const searchParams = useSearchParams()
-
-//     // Get query parameters
-//     const id = searchParams.get("id")
-//     const token = searchParams.get("token")
-
-//     const [password, setPasswordInput] = useState("")
-
-//     useEffect(() => {
-//         if (!id || !token) {
-//             toast({
-//                 title: "Error",
-//                 description: "Missing user ID or token",
-//                 variant: "destructive",
-//             })
-//             router.push("/login")
-//         } 
-//     }, [id, token]);
-
-//     // Handle success
-//     useEffect(() => {
-//         if (isSuccess && data) {
-//             console.log(data);
-
-//             toast({
-//                 title: "Success",
-//                 description: "Password set successfully",
-//             })
-
-//             // Check if we have redirectUrl in the response
-//             if (data.data?.redirectUrl) {
-//                 // Redirect to Google success page
-//                 window.location.href = data.data.redirectUrl;
-//             } 
-//         }
-//     }, [isSuccess, data, toast, router])
-
-//     // Handle error
-//     useEffect(() => {
-//         if (error) {
-//             toast({
-//                 title: "Error",
-//                 description: 'data' in error
-//                     ? (error.data as any)?.message || "Failed to set password"
-//                     : "Failed to set password",
-//                 variant: "destructive",
-//             })
-//         }
-//     }, [error, toast])
-
-//     const handleSubmit = async (e: React.FormEvent) => {
-//         e.preventDefault()
-//         if (!password || password.length < 6) {
-//             return toast({
-//                 title: "Validation Error",
-//                 description: "Password must be at least 6 characters",
-//                 variant: "destructive",
-//             })
-//         }
-
-//         if (!token) {
-//             return toast({
-//                 title: "Error",
-//                 description: "Missing authentication token",
-//                 variant: "destructive",
-//             })
-//         }
-
-//         // Trigger the mutation
-//         await setPassword({ password, token })
-//     }
-
-//     return (
-//         <div className="max-w-md mx-auto mt-20 p-6 border rounded shadow-sm bg-white">
-//             <h1 className="text-xl font-semibold mb-4">Set Your Password</h1>
-//             <form onSubmit={handleSubmit}>
-//                 <Input
-//                     type="password"
-//                     placeholder="Enter new password"
-//                     value={password}
-//                     onChange={(e) => setPasswordInput(e.target.value)}
-//                 />
-//                 <Button className="mt-4 w-full" disabled={isLoading}>
-//                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-//                     {isLoading ? "Setting Password..." : "Set Password"}
-//                 </Button>
-//             </form>
-
-//             <Button
-//                 variant="outline"
-//                 className="mt-2 w-full"
-//                 type="button"
-//                 onClick={() => router.push("/login")}
-//             >
-//                 Skip for now
-//             </Button>
-//         </div>
-//     )
-// }
-
-
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { Loader2 } from "lucide-react"
+import { useToast } from '@/src/lib/context/toast-context';
+import { useSetPasswordMutation } from '@/src/lib/store/services';
+
 
 export default function SetPasswordPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const id = searchParams.get('id');
     const token = searchParams.get('token');
+    const { showToast } = useToast();
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    // RTK Query mutation hook
+    const [setPasswordMutation, {
+        isLoading,
+        isError,
+        data,
+        error: mutationError,
+        isSuccess
+    }] = useSetPasswordMutation();
 
     useEffect(() => {
         if (!id || !token) {
+            showToast({ title: 'Error', description: 'Invalid request parameters', type: 'error' });
             router.push('/login?error=invalid_password_reset');
+            return;
         }
-    }, [id, token, router]);
+    }, [id, token, router, showToast]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setError('');
 
         if (password !== confirmPassword) {
             setError('Passwords do not match');
+            showToast({ title: 'Error', description: 'Passwords do not match', type: 'error' });
             return;
         }
 
         if (password.length < 6) {
             setError('Password must be at least 6 characters long');
+            showToast({ title: 'Error', description: 'Password too short', type: 'error' });
             return;
         }
 
-        setLoading(true);
+        if (!id || !token) {
+            setError('Missing required parameters');
+            showToast({ title: 'Error', description: 'Invalid request parameters', type: 'error' });
+            return;
+        }
 
         try {
-            const response = await fetch('http://localhost:8000/api/v1/auth/set-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    password,
-                    userId: id,
-                }),
-            });
+            const res = await setPasswordMutation({
+                request: { password, userId: id },
+                token
+            }).unwrap();
 
-            const data = await response.json();
+            // const data: SetPasswordResponse = await response.json();
+            const URL = res.data.redirectUrl;
+            if (isSuccess) {
+                showToast({
+                    title: "Success",
+                    description: res.message,
+                    type: "success",
+                });
 
-            if (response.ok) {
-                // Password set successfully, redirect to login
-                router.push('/login?success=password_set');
+                setTimeout(() => {
+                    router.push(URL)
+                }, 800);
+
             } else {
-                setError(data.message || 'Failed to set password');
+                showToast({
+                    title: "Error",
+                    description: data?.message || "Something went wrong",
+                    type: "error",
+                });
             }
         } catch (err) {
             setError('Network error. Please try again.');
-        } finally {
-            setLoading(false);
+            showToast({ title: 'Network Error', description: 'Please try again.', type: 'error' });
         }
     };
 
@@ -235,9 +142,9 @@ export default function SetPasswordPage() {
                     </div>
 
                     <div>
-                        <button type='submit' className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50" disabled={loading}>
-                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {loading ? "Setting Password..." : "Set Password"}
+                        <button type='submit' className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50" disabled={isLoading}>
+                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isLoading ? "Setting Password..." : "Set Password"}
                         </button>
                     </div>
                 </form>
@@ -245,8 +152,15 @@ export default function SetPasswordPage() {
                 {/* Development Info */}
                 {process.env.NODE_ENV === 'development' && (
                     <div className="mt-8 p-4 bg-gray-100 rounded-md text-xs">
-                        <p><strong>User ID:</strong> {id}</p>
-                        <p><strong>Token:</strong> {token?.substring(0, 20)}...</p>
+                        <p className="mb-2"><strong>User ID:</strong> {id}</p>
+                        <div>
+                            <p className="mb-1"><strong>Token:</strong></p>
+                            <div className="bg-white border rounded p-2 max-w-full overflow-x-auto">
+                                <code className="text-xs font-mono whitespace-nowrap">
+                                    {token}
+                                </code>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

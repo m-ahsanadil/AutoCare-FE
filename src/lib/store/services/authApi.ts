@@ -1,3 +1,4 @@
+import { UserRole } from "@/src/enum";
 import { api } from "./api";
 
 interface LogoutResponse {
@@ -6,13 +7,73 @@ interface LogoutResponse {
   statusCode: number;
 }
 
+export interface SetPasswordRequest {
+  password: string;
+  userId: string;
+}
+export interface SetPasswordResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: {
+      _id: string;
+      username: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      role: UserRole
+      profileImage: string;
+      isActive: boolean;
+      isEmailVerified: boolean;
+      lastLogin: string; // ISO date string
+      createdAt: string;
+      updatedAt: string;
+    };
+    redirectUrl: string;
+    token: string;
+  };
+  timestamp: string;
+}
+
+
+export interface LoginRequest {
+  usernameOrEmail: string;
+  password: string;
+}
+
+export interface User {
+  _id: string;
+  email: string
+  name: string
+  role: UserRole
+  profileImage?: string
+  createdAt: string
+  firstName: string
+  isActive: boolean
+  isEmailVerified: boolean
+  lastName: string
+  phone?: string
+  updatedAt: string
+  username: string
+}
+
+export interface LoginResponse {
+  success: boolean;
+  message: string;
+  data: {
+    token: string;
+    user: User;
+  };
+  timestamp: string;
+}
+
+
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation({
+    login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
-        url: '/auth/login',
+        url: 'auth/login',
         method: 'POST',
-        credentials: "include",
         body: credentials,
       }),
       invalidatesTags: ['Auth'],
@@ -34,14 +95,17 @@ export const authApi = api.injectEndpoints({
       }),
     }),
 
-    // Add setPassword mutation
-    setPassword: builder.mutation({
-      query: ({ password, token }) => ({
+    // Set Password Mutation
+    setPassword: builder.mutation<SetPasswordResponse, { request: SetPasswordRequest; token: string }>({
+      query: ({ request, token }) => ({
         url: '/auth/set-password',
         method: 'POST',
-        body: { password },
+        body: request,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       }),
-      invalidatesTags: ['Auth'],
+      invalidatesTags: ['Auth', 'User'],
     }),
 
     // Logout mutation

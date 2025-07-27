@@ -165,7 +165,12 @@ export default function Profile() {
                 {/* Header Section with Avatar */}
                 <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-6">
                     <div className="flex flex-col md:flex-row items-center gap-4">
-                        <div className="relative w-24 h-24 rounded-full overflow-hidden cursor-pointer group" onClick={handleAvatarClick}>
+                        {/* <div className="relative w-24 h-24 rounded-full overflow-hidden cursor-pointer group" onClick={handleAvatarClick}> */}
+                        <div
+                            className={`relative w-24 h-24 rounded-full overflow-hidden group ${isEditing ? 'cursor-pointer' : 'cursor-default'
+                                }`}
+                            onClick={handleAvatarClick}
+                        >
                             {image.preview ? (
                                 <Image
                                     src={image.preview || "/default-avatar.png"}
@@ -315,6 +320,6 @@ export default function Profile() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

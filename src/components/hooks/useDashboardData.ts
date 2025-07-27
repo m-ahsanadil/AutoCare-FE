@@ -1,14 +1,18 @@
 import { useEffect } from "react";
 import { UserRole } from "@/src/enum";
-import { useToast } from "@/hooks/use-toast";
 import { isApiError, isNetworkError } from "@/src/types";
 import { useAuth } from "@/src/lib/context/auth-provider";
 import { useGetDashboardDataQuery } from "@/src/lib/store/services/dashboardApi";
-import { MenuItem } from "../organisms/dashboard/types";
+import { AdminData, CustomerData, MechanicData, MenuItem, ReceptionData, StatCard, SuperAdminData } from "../organisms/dashboard/dashboard.types";
+import { useToast } from "@/src/lib/context/toast-context";
 
+interface UseDashboardDataProps {
+  showSuccessToast?: boolean;
+  showErrorToast?: boolean;
+}
 
-export function useDashboardData() {
-  const { toast } = useToast();
+export function useDashboardData({ showSuccessToast = false, showErrorToast = false, }: UseDashboardDataProps = {}) {
+  const { showToast } = useToast();
   const { user } = useAuth()
   const role = user?.role;
   const { data, error, isLoading, isError, isSuccess } = useGetDashboardDataQuery(role as UserRole, {
@@ -16,53 +20,66 @@ export function useDashboardData() {
   });
 
   let menu: MenuItem[] = [];
-
+  let stats: StatCard[] = [];
+  let dashboard: AdminData | CustomerData | SuperAdminData | MechanicData | ReceptionData | undefined = undefined;
   if (data) {
     if ('mechanicData' in data.data) {
       menu = data.data.menu;
-    } else if ('systemStats' in data.data) {
+      stats = data.data.stats;
+      dashboard = data.data.mechanicData
+    } else if ('superAdminData' in data.data) {
       menu = data.data.menu;
+      stats = data.data.stats;
+      dashboard = data.data.superAdminData
     } else if ('customerData' in data.data) {
       menu = data.data.menu;
-    } else if ('stats' in data.data) {
+      stats = data.data.stats;
+      dashboard = data.data.customerData
+    } else if ('adminData' in data.data) {
       menu = data.data.menu;
+      stats = data.data.stats;
+      dashboard = data.data.adminData
     } else if ('receptionData' in data.data) {
       menu = data.data.menu;
+      stats = data.data.stats;
+      dashboard = data.data.receptionData
     }
   }
 
 
   useEffect(() => {
-    if (isError && error) {
+    if (isError && error && showErrorToast) {
       if (isApiError(error)) {
-        toast({
+        showToast({
           title: 'API Error',
           description: error.message,
-        })
+          type: 'error',
+        });
       } else if (isNetworkError(error)) {
-        toast({
+        showToast({
           title: 'Network Error',
           description: 'Check your internet connection.',
-        })
+          type: 'warning',
+        });
       } else {
-        toast({
+        showToast({
           title: 'Unexpected Error',
           description: 'Something went wrong.',
-        })
+          type: 'error',
+        });
       }
     }
   }, [error, isError])
 
   useEffect(() => {
-    if (isSuccess) {
-      console.log(data);
-
-      toast({
+    if (isSuccess && showSuccessToast) {
+      showToast({
         title: 'Dashboard Loaded',
         description: 'Your menu is ready.',
-      })
+        type: 'success',
+      });
     }
-  }, [isSuccess])
+  }, [isSuccess, showSuccessToast]);
 
-  return { isError, menu, isLoading, error, isSuccess };
+  return { isError, dashboard, stats, menu, isLoading, error, isSuccess };
 }

@@ -50,7 +50,7 @@ export const Sidebar = () => {
     const { toast } = useToast();
     const { user, logout, isLoggingOut } = useAuth();
     const { isSidebarOpen } = useUI();
-    const { menu, isLoading } = useDashboardData()
+    const { menu, isLoading } = useDashboardData({ showSuccessToast: true, showErrorToast: true });
     const UserRoleIcon = useMemo(() => getRoleIcon(user?.role), [user?.role]);
     const userRoleColor = useMemo(() => getRoleColor(user?.role), [user?.role]);
     const userRole = user?.role?.toLowerCase() || 'user';
@@ -136,58 +136,54 @@ export const Sidebar = () => {
             <nav className="flex-1 scrollbar-blue overflow-y-auto p-4">
                 <ul className="space-y-2">
                     {menuContent}
+                    <button
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-red-400 hover:text-red-300 hover:bg-slate-800 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isLoggingOut ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Logging out...
+                            </>
+                        ) : (
+                            <>
+                                <LogOut className="w-5 h-5" />
+                                Logout
+                            </>
+                        )}
+                    </button>
+
                 </ul>
             </nav>
-
-            {/* Logout Button */}
-            <div className="mt-auto p-4 border-t border-slate-700">
-                <button
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                    className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-red-400 hover:text-red-300 hover:bg-slate-800 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {isLoggingOut ? (
-                        <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Logging out...
-                        </>
-                    ) : (
-                        <>
-                            <LogOut className="w-5 h-5" />
-                            Logout
-                        </>
-                    )}
-                </button>
-
-                {/* Optional: User Info */}
-                {user && (
-                    <div className="mt-3 pt-3 border-t border-slate-800">
-                        <div className="flex items-center gap-3 text-xs text-slate-400">
-                            {user.profileImage ? (
-                                <div className="relative w-8 h-8">
-                                    <Image
-                                        src={user.profileImage}
-                                        alt="User Profile"
-                                        fill
-                                        className="rounded-full object-cover border border-slate-700"
-                                    />
-                                </div>
-                            ) : (
-                                <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
-                                    <User className="w-4 h-4 text-slate-400" />
-                                </div>
-                            )}
-
-                            <div className="min-w-0 flex-1">
-                                <p className="text-slate-300 truncate font-medium">
-                                    {user.firstName} {user.lastName}
-                                </p>
-                                <p className="truncate">{user.email}</p>
+            {/* Optional: User Info */}
+            {user && (
+                <div className="mt-3 pt-3 p-4 border-t border-slate-800">
+                    <div className="flex items-center gap-3 text-xs text-slate-400">
+                        {user.profileImage ? (
+                            <div className="relative w-8 h-8">
+                                <Image
+                                    src={user.profileImage}
+                                    alt="User Profile"
+                                    fill
+                                    className="rounded-full object-cover border border-slate-700"
+                                />
                             </div>
+                        ) : (
+                            <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
+                                <User className="w-4 h-4 text-slate-400" />
+                            </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                            <p className="text-slate-300 truncate font-medium">
+                                {user.name || "Guest User"}
+                            </p>
+                            <p className="truncate">{user.email}</p>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

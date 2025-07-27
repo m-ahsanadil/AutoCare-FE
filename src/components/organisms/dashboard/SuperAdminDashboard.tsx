@@ -1,5 +1,7 @@
 import { StatsCard } from "../../atoms/StatsCard";
 import { Users, Car, Wrench, DollarSign, Calendar, Settings } from "lucide-react";
+import { useDashboardData } from "../../hooks/useDashboardData";
+import { getIconComponent } from "@/src/utils/getIconComponent";
 
 const stats = [
     { title: "Total Customers", value: "1,234", icon: Users, iconColor: "text-blue-600", iconBgColor: "bg-blue-100" },
@@ -12,9 +14,10 @@ const stats = [
 
 
 export default function SuperAdminDashboard() {
+    const { dashboard, stats, isLoading, isError } = useDashboardData()
+
     return (
         <div className="w-full bg-gray-50 rounded-lg dark:bg-slate-900 p-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Dashboard Overview</h2>
             <div className="overflow-x-auto scrollbar-custom scrollbar-slate">
                 <div className="flex space-x-6 pb-4 w-max">
                     {stats.map((stat, index) => (
@@ -22,7 +25,7 @@ export default function SuperAdminDashboard() {
                             <StatsCard
                                 title={stat.title}
                                 value={stat.value}
-                                icon={stat.icon}
+                                icon={getIconComponent(stat.icon)}
                                 iconColor={stat.iconColor}
                                 iconBgColor={stat.iconBgColor}
                             />

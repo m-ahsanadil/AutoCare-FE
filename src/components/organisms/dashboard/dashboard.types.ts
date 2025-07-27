@@ -5,6 +5,14 @@ export interface MenuItem {
     path: string;
 }
 
+export interface StatCard {
+    title: string;
+    value: number | string;
+    icon: string;
+    iconColor: string;
+    iconBgColor: string;
+}
+
 export interface BaseResponse<T> {
     success: boolean;
     message: string;
@@ -12,47 +20,80 @@ export interface BaseResponse<T> {
     timestamp: string;
 }
 
-// Mechanic Dashboard Types
-export interface MechanicPerformanceStats {
-    completionRate: number;
-    averageTime: string;
-    customerRating: number;
+// Admin Dashboard Types
+export interface RecentActivity {
+    type: string;
+    description: string;
+    timestamp: string;
 }
 
+export interface Appointment {
+    id: string;
+    customerName: string;
+    mechanicName: string;
+    time: string;
+}
+
+export interface LowStockService {
+    serviceName: string;
+    availableQuantity: number;
+    threshold: number;
+}
+
+export interface AdminData {
+    recentActivity: RecentActivity[];
+    upcomingAppointments: Appointment[];
+    lowStockServices: LowStockService[];
+}
+
+export interface AdminDashboardData {
+    menu: MenuItem[];
+    stats: StatCard[];
+    adminData: AdminData;
+}
+
+export type AdminDashboardResponse = BaseResponse<AdminDashboardData>;
+
+// Mechanic Dashboard Types
 export interface MechanicData {
-    todayTasks: number;
-    completedTasks: number;
-    pendingTasks: number;
     todayAppointments: any[]; // You can define a specific type for appointments if needed
     currentVehicles: any[]; // You can define a specific type for vehicles if needed
-    performanceStats: MechanicPerformanceStats;
 }
 
 export interface MechanicDashboardData {
     menu: MenuItem[];
+    stats: StatCard[];
     mechanicData: MechanicData;
 }
 
 export type MechanicDashboardResponse = BaseResponse<MechanicDashboardData>;
 
 // Super Admin Dashboard Types
-export interface SystemStats {
-    totalAdmins: number;
-    totalUsers: number;
-    systemHealth: string;
-    serverUptime: string;
-    totalRevenue: number;
-    monthlyGrowth: number;
+export interface AdminActivity {
+    adminId: string;
+    action: string;
+    timestamp: string;
+}
+
+export interface SystemAlert {
+    type: string;
+    message: string;
+    severity: 'low' | 'medium' | 'high';
+    createdAt: string;
 }
 
 export interface SuperAdminData {
+    adminActivity: AdminActivity[];
+    systemAlerts: SystemAlert[];
+};
+
+export interface SuperAdminDashboardData {
     menu: MenuItem[];
-    systemStats: SystemStats;
-    adminActivity: any[]; // You can define a specific type for admin activity if needed
-    systemAlerts: any[]; // You can define a specific type for system alerts if needed
+    stats: StatCard[];
+    superAdminData: SuperAdminData;
 }
 
-export type SuperAdminDashboardResponse = BaseResponse<SuperAdminData>;
+export type SuperAdminDashboardResponse = BaseResponse<SuperAdminDashboardData>;
 
 // Customer Dashboard Types
 export interface UpcomingAppointment {
@@ -64,54 +105,29 @@ export interface UpcomingAppointment {
 
 export interface CustomerData {
     upcomingAppointment: UpcomingAppointment;
-    vehicleStatus: string;
-    membershipStatus: string;
-    recentServices: any[]; // You can define a specific type for recent services if needed
-    pendingPayments: number;
-    loyaltyPoints: number;
+    recentServices: any[];
 }
 
 export interface CustomerDashboardData {
     menu: MenuItem[];
+    stats: StatCard[];
     customerData: CustomerData;
 }
 
 export type CustomerDashboardResponse = BaseResponse<CustomerDashboardData>;
 
-// Admin Dashboard Types
-export interface AdminStats {
-    totalCustomers: number;
-    totalMechanics: number;
-    totalReceptionists: number;
-    todayAppointments: number;
-    pendingAppointments: number;
-    completedAppointments: number;
-    totalRevenue: number;
-    monthlyRevenue: number;
-}
-
-export interface AdminData {
-    menu: MenuItem[];
-    stats: AdminStats;
-    recentActivity: any[]; // You can define a specific type for recent activity if needed
-    upcomingAppointments: any[]; // You can define a specific type for appointments if needed
-    lowStockServices: any[]; // You can define a specific type for services if needed
-}
-
-export type AdminDashboardResponse = BaseResponse<AdminData>;
 
 // Receptionist Dashboard Types
 export interface ReceptionData {
     todayAppointments: any[]; // You can define a specific type for appointments if needed
-    walkInCustomers: number;
-    vehiclesInService: number;
-    availableMechanics: number;
+    walkInCustomers: any[];
+    vehiclesInService: any[];
     pendingCheckIns: any[]; // You can define a specific type for check-ins if needed
-    completedCheckOuts: number;
 }
 
 export interface ReceptionistDashboardData {
     menu: MenuItem[];
+    stats: StatCard[];
     receptionData: ReceptionData;
 }
 

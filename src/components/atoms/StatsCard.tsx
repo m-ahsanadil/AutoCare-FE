@@ -10,19 +10,6 @@ interface StatsCardProps {
 }
 
 export const StatsCard: FC<StatsCardProps> = ({ title, value, icon: Icon, iconColor = "text-blue-600", iconBgColor = "bg-blue-100" }) => (
-  // <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-2xl shadow-sm w-full">
-  //   <div className="flex items-center justify-between">
-  //     <div className="flex-1">
-  //       <h4 className="text-sm text-gray-500 dark:text-gray-300 truncate">{title}</h4>
-  //       <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
-  //     </div>
-  //     {Icon && (
-  //       <div className={`p-3 rounded-xl ${iconBgColor} shrink-0`}>
-  //         <Icon className={`w-6 h-6 ${iconColor}`} />
-  //       </div>
-  //     )}
-  //   </div>
-  // </div>
   <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
     <div className="flex items-center justify-between">
       <div className="flex-1">

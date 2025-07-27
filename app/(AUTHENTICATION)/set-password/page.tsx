@@ -63,28 +63,20 @@ export default function SetPasswordPage() {
             }).unwrap();
 
             // const data: SetPasswordResponse = await response.json();
-            const URL = res.data.redirectUrl;
-            if (isSuccess) {
-                showToast({
-                    title: "Success",
-                    description: res.message,
-                    type: "success",
-                });
+            showToast({
+                title: "Success",
+                description: res.message,
+                type: "success",
+            });
 
-                setTimeout(() => {
-                    router.push(URL)
-                }, 800);
-
-            } else {
-                showToast({
-                    title: "Error",
-                    description: data?.message || "Something went wrong",
-                    type: "error",
-                });
-            }
-        } catch (err) {
-            setError('Network error. Please try again.');
-            showToast({ title: 'Network Error', description: 'Please try again.', type: 'error' });
+            setTimeout(() => {
+                const URL = res.data.redirectUrl;
+                router.push(URL)
+            }, 800);
+        } catch (err: any) {
+            const message = err?.data?.message || "Something went wrong";
+            setError(message);
+            showToast({ title: "Error", description: message, type: "error" });
         }
     };
 

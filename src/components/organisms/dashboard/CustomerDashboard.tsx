@@ -1,56 +1,35 @@
 "use client";
 import { useToast } from "@/src/lib/context/toast-context";
 import { useIsMobile } from "../../hooks/use-mobile";
-import { useAuth } from "@/src/lib/context/auth-provider";
+import { useDashboardData } from "../../hooks/useDashboardData";
+import { getIconComponent } from "@/src/utils/getIconComponent";
+import { StatsCard } from "../../atoms/StatsCard";
 
 
 
 export default function CustomerDashboard() {
-    const { showToast } = useToast();
-    const isMobile = useIsMobile();
-    const { token } = useAuth()
+  const { showToast } = useToast();
+  const isMobile = useIsMobile();
+  const { dashboard, stats, isLoading, isError } = useDashboardData()
 
 
-
-    return (
-   <>
-      <div>
-        {isMobile ? (
-          <p>You're on a mobile device</p>
-        ) : (
-          <p>You're on a desktop or tablet</p>
-        )}
+  return (
+    <div className="w-full bg-gray-50 rounded-lg dark:bg-slate-900 p-6">
+      <div className="overflow-x-auto scrollbar-custom scrollbar-slate">
+        <div className="flex space-x-6 pb-4 w-max">
+          {stats.map((stat, index) => (
+            <div key={index} className="w-72 flex-shrink-0">
+              <StatsCard
+                title={stat.title}
+                value={stat.value}
+                icon={getIconComponent(stat.icon)}
+                iconColor={stat.iconColor}
+                iconBgColor={stat.iconBgColor}
+              />
+            </div>
+          ))}
+        </div>
       </div>
-
-  
-      {/* Toast Buttons */}
-      <div className="space-y-2">
-        {['success', 'error', 'info', 'warning', 'loading'].map((type) => (
-          <button
-            key={type}
-            onClick={() =>
-              showToast({
-                title: `${type.charAt(0).toUpperCase() + type.slice(1)}!`,
-                description: `This is a ${type} toast.`,
-                type: type as any,
-              })
-            }
-            className={`px-4 py-2 rounded ${
-              type === 'success'
-                ? 'bg-green-500 text-white'
-                : type === 'error'
-                ? 'bg-red-500 text-white'
-                : type === 'info'
-                ? 'bg-blue-500 text-white'
-                : type === 'warning'
-                ? 'bg-yellow-500 text-black'
-                : 'bg-gray-500 text-white'
-            }`}
-          >
-            {type.charAt(0).toUpperCase() + type.slice(1)} Toast
-          </button>
-        ))}
-      </div>
-    </>
+    </div>
   );
 }

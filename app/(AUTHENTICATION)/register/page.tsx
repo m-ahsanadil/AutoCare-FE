@@ -206,7 +206,8 @@ export default function Register() {
                             {UserRoleValues.filter(role =>
                                 role !== UserRole.ADMIN &&
                                 role !== UserRole.SUPER_ADMIN &&
-                                role !== UserRole.RECEPTIONIST
+                                role !== UserRole.RECEPTIONIST &&
+                                role !== UserRole.MECHANIC
                             ).map((role) => (
                                 <option key={role} value={role}>
                                     {role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')}

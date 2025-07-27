@@ -4,52 +4,62 @@ import { DashboardResponse } from "@/src/components/organisms/dashboard/dashboar
 import { ENDPOINTS } from "./Endpoints";
 import { UserRole } from "@/src/enum";
 
+const getDashboardEndpoint = (role: UserRole): string => {
+  const roleEndpointMap: Record<UserRole, string> = {
+    [UserRole.SUPER_ADMIN]: ENDPOINTS.DASHBOARD.GET_SUPER_ADMIN,
+    [UserRole.ADMIN]: ENDPOINTS.DASHBOARD.GET_ADMIN,
+    [UserRole.RECEPTIONIST]: ENDPOINTS.DASHBOARD.GET_RECEPTIONIST,
+    [UserRole.MECHANIC]: ENDPOINTS.DASHBOARD.GET_MECHANIC,
+    [UserRole.CUSTOMER]: ENDPOINTS.DASHBOARD.GET_CUSTOMER,
+  };
+
+  const endpoint = roleEndpointMap[role];
+  if (!endpoint) {
+    throw new Error(`Invalid user role: ${role}`);
+  }
+
+  return endpoint;
+};
 
 export const dashboardApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    // Get complete dashboard data
     getDashboardData: builder.query<DashboardResponse, UserRole>({
-      query: (role) => {
-        let path = "";
-        switch (role) {
-          case UserRole.SUPER_ADMIN:
-            path = ENDPOINTS.DASHBOARD.GET_SUPER_ADMIN;
-            break;
-          case UserRole.ADMIN:
-            path = ENDPOINTS.DASHBOARD.GET_ADMIN;
-            break;
-          case UserRole.RECEPTIONIST:
-            path = ENDPOINTS.DASHBOARD.GET_RECEPTIONIST;
-            break;
-          case UserRole.MECHANIC:
-            path = ENDPOINTS.DASHBOARD.GET_MECHANIC;
-            break;
-          case UserRole.CUSTOMER:
-            path = ENDPOINTS.DASHBOARD.GET_CUSTOMER;
-            break;
-          default:
-            throw new Error(`Invalid user role: ${role}`);
-        }
-
-        return {
-          url: path,
-          method: "GET",
-        };
-      },
+      query: (role) => ({
+        url: getDashboardEndpoint(role),
+        method: "GET",
+      }),
 
       transformResponse: (response: DashboardResponse): DashboardResponse => {
-        if ('success' in response && response.success) {
+        // More explicit success check
+        if (response && typeof response === 'object' && 'success' in response && response.success) {
           return response;
-        } else {
-          throw response as unknown as ApiError;
         }
+        throw new Error('Invalid response format or unsuccessful response');
       },
 
       transformErrorResponse: (baseQueryReturnValue): ApiError => {
-        return baseQueryReturnValue.data as ApiError;
-      },
-    }),
+        // Better error handling with fallback
+        if (baseQueryReturnValue?.data) {
+          return baseQueryReturnValue.data as ApiError;
+        }
 
+        // Fallback error structure
+        return {
+          success: false,
+          message: (baseQueryReturnValue?.data as any)?.message || 'An unknown error occurred',
+          statusCode: baseQueryReturnValue?.status || 500,
+        } as ApiError;
+      },
+
+      // Add caching and invalidation
+      providesTags: (result, error, role) => [
+        { type: 'Dashboard', id: role },
+        'Dashboard'
+      ],
+
+      // Cache for 5 minutes
+      keepUnusedDataFor: 300,
+    }),
   }),
 });
 

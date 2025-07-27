@@ -1,5 +1,6 @@
 import { UserRole } from "@/src/enum";
 import { api } from "./api";
+import { ENDPOINTS } from "./Endpoints";
 
 interface LogoutResponse {
   success: boolean;
@@ -72,7 +73,7 @@ export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
-        url: 'auth/login',
+        url: ENDPOINTS.USER.LOGIN,
         method: 'POST',
         credentials: 'include',
         body: credentials,
@@ -82,7 +83,7 @@ export const authApi = api.injectEndpoints({
 
     register: builder.mutation({
       query: (formData) => ({
-        url: '/auth/register',
+        url: ENDPOINTS.USER.REGISTER,
         method: 'POST',
         body: formData,
       }),
@@ -91,7 +92,7 @@ export const authApi = api.injectEndpoints({
     // Get Google auth URL
     getGoogleAuthUrl: builder.query<{ success: boolean; data: { authUrl: string } }, void>({
       query: () => ({
-        url: '/auth/google-url',
+        url: ENDPOINTS.AUTH.GOOGLE_URL,
         method: 'GET',
       }),
     }),
@@ -99,7 +100,7 @@ export const authApi = api.injectEndpoints({
     // Set Password Mutation
     setPassword: builder.mutation<SetPasswordResponse, { request: SetPasswordRequest; token: string }>({
       query: ({ request, token }) => ({
-        url: '/auth/set-password',
+        url: ENDPOINTS.USER.SET_PASSWORD,
         method: 'POST',
         body: request,
         headers: {
@@ -111,13 +112,13 @@ export const authApi = api.injectEndpoints({
 
     // Logout mutation
     logout: builder.mutation<
-      { message: string; success: boolean }, // Response type
-      void // No request body needed
+      { message: string; success: boolean },
+      void
     >({
       query: () => ({
-        url: '/auth/logout',
+        url: ENDPOINTS.USER.LOGOUT,
         method: 'POST',
-        credentials: 'include', // This includes cookies/credentials
+        credentials: 'include',
       }),
       invalidatesTags: ['Auth', 'User', 'Profile'],
       // Optional: Clear all cache on logout

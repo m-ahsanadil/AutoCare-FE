@@ -2,8 +2,14 @@
 
 export const ENDPOINTS = {
     AUTH: {
-        REGISTER: '/auth/register', // POST
-        LOGIN: '/auth/login', // POST
+        GOOGLE_URL: '/auth/google-url',
+    },
+
+    USER: {
+        REGISTER: '/user/register', // POST
+        LOGIN: '/user/login', // POST
+        SET_PASSWORD: '/user/set-password', // POST
+        LOGOUT: '/user/logout', // POST
     },
 
     DASHBOARD: {

@@ -10,6 +10,8 @@ export const ENDPOINTS = {
         LOGIN: '/user/login', // POST
         SET_PASSWORD: '/user/set-password', // POST
         LOGOUT: '/user/logout', // POST
+        GET_ME: '/user/me', // GET
+        UPDATE_ME: '/user/me', // PUT
     },
 
     DASHBOARD: {

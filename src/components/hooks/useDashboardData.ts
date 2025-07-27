@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { UserRole } from "@/src/enum";
 import { isApiError, isNetworkError } from "@/src/types";
 import { useAuth } from "@/src/lib/context/auth-provider";
-import { useGetDashboardDataQuery } from "@/src/lib/store/services/dashboardApi";
+import { useGetDashboardDataQuery } from "@/src/lib/store/services/dashboard.api";
 import { AdminData, CustomerData, MechanicData, MenuItem, ReceptionData, StatCard, SuperAdminData } from "../organisms/dashboard/dashboard.types";
 import { useToast } from "@/src/lib/context/toast-context";
 

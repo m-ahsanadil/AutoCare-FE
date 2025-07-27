@@ -10,6 +10,7 @@ import { UserRole } from "@/src/enum";
 import { getIconComponent } from "@/src/utils/getIconComponent";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { useToast } from "@/hooks/use-toast";
+import { useGetProfileQuery } from "@/src/lib/store/services/profile.api";
 
 export const getRoleColor = (role?: string) => {
     switch (role) {
@@ -48,7 +49,8 @@ export const getRoleIcon = (role?: string) => {
 export const Sidebar = () => {
     const pathname = usePathname();
     const { toast } = useToast();
-    const { user, logout, isLoggingOut } = useAuth();
+    const { logout, isLoggingOut } = useAuth();
+    const { data: user, isLoading: profileLoading } = useGetProfileQuery();
     const { isSidebarOpen } = useUI();
     const { menu, isLoading } = useDashboardData({ showSuccessToast: true, showErrorToast: true });
     const UserRoleIcon = useMemo(() => getRoleIcon(user?.role), [user?.role]);

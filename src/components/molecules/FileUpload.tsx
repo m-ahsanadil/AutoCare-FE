@@ -5,7 +5,7 @@ import { Camera } from 'lucide-react';
 import Image from "next/image"
 
 interface ProfileImageUploaderProps {
-  imageUrl?: string;
+  imageUrl?: string | null;
   onImageSelect: (file: File) => void;
   defaultImage?: string;
   size?: number;

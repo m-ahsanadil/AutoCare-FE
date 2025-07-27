@@ -72,18 +72,18 @@ const partsNeeded = [
 
 function OverviewTab() {
   const [activeTab, setActiveTab] = useState('today');
-
+  const { stats } = useDashboardData();
   return (
     <>
       {/* Stats Cards */}
       <div className="overflow-x-auto">
         <div className="flex space-x-4 pb-4 min-w-max">
-          {mockStats.map((stat, index) => (
+          {stats.map((stat, index) => (
             <div key={index} className="w-72 flex-shrink-0">
               <StatsCard
                 title={stat.title}
                 value={stat.value}
-                icon={stat.icon}
+                icon={getIconComponent(stat.icon)}
                 iconColor={stat.iconColor}
                 iconBgColor={stat.iconBgColor}
                 trend={stat.trend}

@@ -11,6 +11,12 @@ export interface StatCard {
     icon: string;
     iconColor: string;
     iconBgColor: string;
+    urgent?: boolean;
+    trend?: {
+        value: string | number;
+        label: string;
+        positive: boolean;
+    };
 }
 
 export interface BaseResponse<T> {
